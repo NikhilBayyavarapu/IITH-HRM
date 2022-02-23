@@ -1,4 +1,4 @@
-# covid19india-node
+# IITH - HRM
 
 ## Commands
 
