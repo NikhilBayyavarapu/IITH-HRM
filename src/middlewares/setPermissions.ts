@@ -11,9 +11,9 @@ export const setPermission: Handler = async (_req, res, next) => {
       (err, results) => {
         if (err) {
           console.error(err);
-          return next;
+          return next();
         }
-        if (results.rows.length === 1) {
+        if (results.length === 1) {
           res.locals.permissions.hostelOffice = true;
         }
         pool.query(
@@ -22,17 +22,17 @@ export const setPermission: Handler = async (_req, res, next) => {
               .substring(0, res.locals.user.email.length - 11)
               .toUpperCase()
           )} ;`,
-          (err, results) => {
+          (err, results2) => {
             if (err) {
               console.error(err);
-              return next;
+              return next();
             }
-            if (results.rows.length === 1) {
-              res.locals.user.name = results.rows[0].name;
+            if (results2.length === 1) {
+              res.locals.user.name = results2[0].name;
               res.locals.permissions.student = true;
-              return next;
+              return next();
             }
-            return next;
+            return next();
           }
         );
         return;
@@ -40,6 +40,6 @@ export const setPermission: Handler = async (_req, res, next) => {
     );
     return;
   } else {
-    return next;
+    return next();
   }
 };

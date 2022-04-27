@@ -28,7 +28,7 @@ const clientToken: Handler = async (req, res, next) => {
         .auth()
         .verifyIdToken(token)
         .then((decodedToken) => {
-          if (decodedToken) {
+          if (decodedToken && decodedToken.email_verified) {
             if (
               decodedToken?.email?.slice(decodedToken.email.length - 10) !==
               "iith.ac.in"
@@ -56,7 +56,7 @@ const clientToken: Handler = async (req, res, next) => {
       res.locals.user = {};
       return next();
     }
-    return next();
+    return;
   } catch (err) {
     return sendError(res, 400, err);
   }
