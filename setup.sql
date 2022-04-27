@@ -137,12 +137,77 @@ create function vacation_request(roll_num varchar(20),time timestamp)
 returns int
 begin
 	DECLARE if_exists bool;
+    DECLARE if_exists_2 bool;
     select exists ( select room_no from student_details where roll_no = roll_num)into if_exists;
-	if (if_exists is true) then
+    select exists ( select roll_no from room_vacataion_requests where roll_no = roll_num)into if_exists_2;
+	if (if_exists is true AND if_exists_2 is false) then
 		insert into room_vacataion_requests(roll_no,vacating_time) values (roll_num,time);
 		return 1;
 	else 
 		return 0;
     end if;
+end//
+delimiter ;
+
+drop function if exists empty_room_update;
+delimiter //
+create function empty_room_update(swapid bigint)
+returns int
+begin
+	declare roll_num varchar(20);
+    declare room_num int;
+    declare block_1 varchar(1);
+   
+   select roll_no into roll_num from  empty_room_allocataion_requests where id = swapid;
+   select requested_block into block_1 from  empty_room_allocataion_requests where id = swapid;
+   select requested_room into room_num from  empty_room_allocataion_requests where id = swapid;
+    
+	update student_details set
+    room_no = room_num,
+    block = block_1
+    where roll_no = roll_num;
+    
+   
+    
+    delete from empty_room_allocataion_requests where requested_block = block_1 AND requested_room = room_num;
+    
+    return 1;
+end//
+delimiter ;
+
+
+drop function if exists room_update;
+delimiter //
+create function room_update(swapid bigint)
+returns int
+begin
+	declare roll_no_1 varchar(20);
+    declare room_no_1 int;
+    declare block_1 varchar(1);
+    declare roll_no_2 varchar(20);
+    declare room_no_2 int;
+    declare block_2 varchar(1);
+    
+    select roll_no into roll_no_1 from student_details where roll_no in(select roll_no from room_swap_requests where id = swapid);
+    select room_no into room_no_1 from student_details where roll_no in(select roll_no from room_swap_requests where id = swapid);
+    select block into block_1 from student_details where roll_no in(select roll_no from room_swap_requests where id = swapid);
+	select roll_no into roll_no_2 from student_details where block in(select requested_block from room_swap_requests where id = swapid) and room_no in (select requested_room from room_swap_requests where id = swapid) limit 1;
+    select room_no into room_no_2 from student_details where block in(select requested_block from room_swap_requests where id = swapid) and room_no in (select requested_room from room_swap_requests where id = swapid) limit 1;
+    select block into block_2 from student_details where block in(select requested_block from room_swap_requests where id = swapid) and room_no in (select requested_room from room_swap_requests where id = swapid) limit 1;
+    
+	update student_details set
+    room_no = room_no_2,
+    block = block_2
+    where roll_no = roll_no_1;
+    
+    update student_details set
+    room_no = room_no_1,
+    block = block_1
+    where roll_no = roll_no_2;
+    
+    delete from room_swap_requests where requested_block = block_1 AND requested_room = room_no_1;
+    delete from room_swap_requests where requested_block = block_2 AND requested_room = room_no_2;
+    
+    return 1;
 end//
 delimiter ;
