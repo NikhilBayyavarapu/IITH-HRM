@@ -34,7 +34,7 @@ app.get("/getrole", clientToken, setPermission, async (_req, res) => {
   return sendData(res, 200, res.locals.permissions);
 });
 app.use("/student", clientToken, setPermission, checkStudent, StudentRouter);
-app.use("/hostel", clientToken, setPermission, checkHostelOffice, HostelRouter);
+app.use("/admin", clientToken, setPermission, checkHostelOffice, HostelRouter);
 app.use(staticServer(path.join(__dirname, "public")));
 
 app.listen(parseInt(process.env.PORT || "3000"), () => {

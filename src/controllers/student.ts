@@ -29,7 +29,7 @@ export const getStudentAttendanceData = async (email: string) => {
           return reject(err);
         }
         return resolve(
-          results.map((result) => {
+          results.map((result: { entry: number | boolean }) => {
             if (result.entry === 1) {
               result.entry = true;
             } else {
@@ -216,4 +216,16 @@ export const getStudentServiceRequestData = async (email: string) => {
   });
 };
 
-export const getInventoryDataForStudent = async () => {};
+export const getInventoryDataForStudent = async () => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `SELECT item_name, count(*) AS count FROM inventory WHERE id NOT IN (SELECT item_id FROM inventory_history WHERE issued = 1) AND item_status = "available" GROUP BY item_name;`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};

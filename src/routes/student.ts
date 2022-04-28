@@ -154,7 +154,11 @@ router.post(`/completed`, async (req, res) => {
 });
 
 router.get(`/inventory`, async (_req, res) => {
-  return sendData(res, 200, getInventoryDataForStudent());
+  try {
+    return sendData(res, 200, await getInventoryDataForStudent());
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
 });
 
 export default router;

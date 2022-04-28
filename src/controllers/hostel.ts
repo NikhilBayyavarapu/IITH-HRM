@@ -3,7 +3,7 @@ import { pool } from "../configs/db";
 export const getRoomSwapRequests = async () => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `select name,requested_block,requested_room from student_details inner join room_swap_requests on room_swap_requests.roll_no = student_details.roll_no; `,
+      `select room_swap_requests.id, name,requested_block,requested_room from student_details inner join room_swap_requests on room_swap_requests.roll_no = student_details.roll_no; `,
       (err, results) => {
         if (err) {
           return reject(err);
@@ -17,7 +17,7 @@ export const getRoomSwapRequests = async () => {
 export const getRoomEmptyRequests = async () => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `select name,requested_block,requested_room from student_details inner join empty_room_allocataion_requests on empty_room_allocataion_requests.roll_no = student_details.roll_no; `,
+      `select empty_room_allocataion_requests.id, name,requested_block,requested_room from student_details inner join empty_room_allocataion_requests on empty_room_allocataion_requests.roll_no = student_details.roll_no; `,
       (err, results) => {
         if (err) {
           return reject(err);
@@ -131,7 +131,7 @@ export const getVacationRequests = async () => {
 export const getServiceRequests = async () => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `select student_details.name,service_requests.roll_no,staff_type,requested_timestamp from service_requests inner join student_details on service_requests.roll_no = student_details.roll_no;`,
+      `select service_requests.id AS serviceid, student_details.name,service_requests.roll_no,staff_type,requested_timestamp from service_requests inner join student_details on service_requests.roll_no = student_details.roll_no;`,
       (err, results) => {
         if (err) {
           return reject(err);
@@ -142,4 +142,45 @@ export const getServiceRequests = async () => {
   });
 };
 
-export const getInventoryDataForHO = async () => {};
+export const getInventoryDataForHO = async () => {
+  return new Promise((resolve, reject) => {
+    pool.query(`SELECT * FROM inventory ;`, (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(results);
+    });
+  });
+};
+
+export const getInventoryHistoryDataForHO = async (id: number) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `SELECT * FROM inventory_history WHERE id = ${pool.escape(
+        id
+      )} ORDER BY time DESC;`,
+      (err, results) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(results);
+      }
+    );
+  });
+};
+
+export const updateInventoryHistoryData = async (id: number) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `SELECT * FROM inventory_history WHERE id = ${pool.escape(
+        id
+      )} ORDER BY time DESC;`,
+      (err, results) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(results);
+      }
+    );
+  });
+};

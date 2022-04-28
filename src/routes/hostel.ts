@@ -10,6 +10,8 @@ import {
   respondVacationRequest,
   getAllStaffData,
   assignStaffToServiceRequest,
+  getInventoryHistoryDataForHO,
+  updateInventoryHistoryData,
 } from "../controllers/hostel";
 import sendError from "../utils/error-handle";
 import sendData from "../utils/send-data";
@@ -105,9 +107,39 @@ router.post(`/assignstaff`, async (req, res) => {
 });
 
 router.get(`/inventory`, async (_req, res) => {
-  return sendData(res, 200, getInventoryDataForHO());
+  try {
+    return sendData(res, 200, await getInventoryDataForHO());
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
 });
 
-router.post(`/updateinventory`, async (_req, res) => {});
+router.get(`/inventoryspecific`, async (req, res) => {
+  try {
+    return sendData(
+      res,
+      200,
+      await getInventoryHistoryDataForHO(
+        req.query.id ? parseInt(req.query.id.toString()) : 1
+      )
+    );
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
+});
+
+router.post(`/updateinventory`, async (req, res) => {
+  try {
+    return sendData(
+      res,
+      200,
+      await updateInventoryHistoryData(
+        req.query.id ? parseInt(req.query.id.toString()) : 1
+      )
+    );
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
+});
 
 export default router;
