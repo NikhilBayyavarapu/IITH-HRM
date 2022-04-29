@@ -1,4 +1,5 @@
 import { pool } from "../configs/db";
+import { getReadableStringFromTimestamp } from "../utils/getReadableDateFromTimestamp";
 
 export const getRoomSwapRequests = async () => {
   return new Promise((resolve, reject) => {
@@ -122,7 +123,14 @@ export const getVacationRequests = async () => {
         if (err) {
           return reject(err);
         }
-        return resolve(results);
+        return resolve(
+          results.map((result) => {
+            result.vacating_time = getReadableStringFromTimestamp(
+              result.vacating_time
+            );
+            return result;
+          })
+        );
       }
     );
   });
@@ -136,7 +144,14 @@ export const getServiceRequests = async () => {
         if (err) {
           return reject(err);
         }
-        return resolve(results);
+        return resolve(
+          results.map((result) => {
+            result.requested_timestamp = getReadableStringFromTimestamp(
+              result.requested_timestamp
+            );
+            return result;
+          })
+        );
       }
     );
   });
