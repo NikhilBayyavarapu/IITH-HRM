@@ -144,12 +144,15 @@ export const getServiceRequests = async () => {
 
 export const getInventoryDataForHO = async () => {
   return new Promise((resolve, reject) => {
-    pool.query(`SELECT * FROM inventory ;`, (err, results) => {
-      if (err) {
-        return reject(err);
+    pool.query(
+      `SELECT A.id AS id,item_name,item_status,B.issued AS issued FROM inventory AS A LEFT JOIN (SELECT * FROM inventory_history ORDER BY time DESC) AS B ON A.id = B.item_id;`,
+      (err, results) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(results);
       }
-      return resolve(results);
-    });
+    );
   });
 };
 
@@ -182,5 +185,66 @@ export const updateInventoryHistoryData = async (id: number) => {
         return resolve(results);
       }
     );
+  });
+};
+
+export const issueInventory = async (id: number, rollNo: string) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `SELECT * FROM inventory_history WHERE item_id = ${pool.escape(
+        id
+      )} ORDER BY time DESC LIMIT 1;`,
+      (err1, result1) => {
+        if (err1) {
+          return reject(err1);
+        }
+        if (result1.length && result1[0].issued === 1) {
+          return resolve(
+            `Failed: Item already issued to ${result1[0].roll_no}`
+          );
+        }
+        pool.query(
+          `INSERT INTO inventory_history (roll_no,item_id,time,issued) VALUES (${pool.escape(
+            rollNo
+          )},${pool.escape(id)},now(),1) ;`,
+          (err2) => {
+            if (err2) {
+              return reject(err2);
+            }
+            return resolve("Successfully Issued");
+          }
+        );
+      }
+    );
+  });
+};
+
+export const returnInventoryItem = async (item_id: number) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `UPDATE inventory_history SET issued = 0 WHERE item_id = ${pool.escape(
+        item_id
+      )} ;`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        if (result.affectedRows !== 1) {
+          return resolve("Failed: Item not issued to anyone");
+        }
+        return resolve("Successfully Updated");
+      }
+    );
+  });
+};
+
+export const sendStudentData = async () => {
+  return new Promise((resolve, reject) => {
+    pool.query(`SELECT * FROM student_details ;`, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(result);
+    });
   });
 };

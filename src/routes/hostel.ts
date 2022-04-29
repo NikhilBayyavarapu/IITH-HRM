@@ -12,6 +12,9 @@ import {
   assignStaffToServiceRequest,
   getInventoryHistoryDataForHO,
   updateInventoryHistoryData,
+  issueInventory,
+  returnInventoryItem,
+  sendStudentData,
 } from "../controllers/hostel";
 import sendError from "../utils/error-handle";
 import sendData from "../utils/send-data";
@@ -137,6 +140,34 @@ router.post(`/updateinventory`, async (req, res) => {
         req.query.id ? parseInt(req.query.id.toString()) : 1
       )
     );
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
+});
+
+router.post("/inventoryissue", async (req, res) => {
+  try {
+    return sendData(
+      res,
+      200,
+      await issueInventory(req.body.id, req.body.rollNo)
+    );
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
+});
+
+router.post("/inventoryreturn", async (req, res) => {
+  try {
+    return sendData(res, 200, await returnInventoryItem(req.body.id));
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
+});
+
+router.get("/student", async (_req, res) => {
+  try {
+    return sendData(res, 200, await sendStudentData());
   } catch (error) {
     return sendError(res, 500, error);
   }
