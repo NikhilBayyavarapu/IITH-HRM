@@ -31,10 +31,10 @@ export const getRoomEmptyRequests = async () => {
   });
 };
 
-export const respondEmptyRoomUpdate = async (swapId: number, resp: boolean) => {
+export const respondEmptyRoomUpdate = async (swapId: number, resp: number) => {
   return new Promise((resolve, reject) => {
     let query = "";
-    if (resp === true) {
+    if (resp === 1) {
       query = `SELECT empty_room_update(${pool.escape(swapId)}) as response ;`;
     } else {
       query = `DELETE FROM empty_room_allocataion_requests WHERE id = ${pool.escape(
@@ -50,10 +50,10 @@ export const respondEmptyRoomUpdate = async (swapId: number, resp: boolean) => {
   });
 };
 
-export const respondSwapRoomUpdate = async (swapId: number, resp: boolean) => {
+export const respondSwapRoomUpdate = async (swapId: number, resp: number) => {
   return new Promise((resolve, reject) => {
     let query = "";
-    if (resp === true) {
+    if (resp === 1) {
       query = `SELECT room_update(${pool.escape(swapId)}) as response ;`;
     } else {
       query = `DELETE FROM room_swap_requests WHERE id = ${pool.escape(
@@ -162,7 +162,7 @@ export const getServiceRequests = async () => {
 export const getInventoryDataForHO = async () => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `SELECT A.id AS id,item_name,item_status,B.issued AS issued FROM inventory AS A LEFT JOIN (SELECT * FROM inventory_history ORDER BY time DESC) AS B ON A.id = B.item_id;`,
+      `SELECT A.id AS id,item_name,item_status,B.issued AS issued FROM inventory AS A LEFT JOIN (SELECT * FROM inventory_history WHERE issued = 1) AS B ON A.id = B.item_id;`,
       (err, results) => {
         if (err) {
           return reject(err);

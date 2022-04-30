@@ -206,9 +206,9 @@ export const completeServiceRequest = async (
 export const getStudentServiceRequestData = async (email: string) => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `select staff_type,requested_timestamp,assigned_staff,assigned_timestamp from service_requests where roll_no = ${pool.escape(
+      `select A.staff_type AS staff_type,requested_timestamp,assigned_timestamp,B.name AS staff_name,B.contact_no AS staff_contact from (SELECT * FROM service_requests WHERE roll_no = ${pool.escape(
         getRollFromEmail(email)
-      )};`,
+      )}) AS A LEFT JOIN staff_details AS B ON A.assigned_staff = B.id ;`,
       (err, result) => {
         if (err) {
           return reject(err);
@@ -218,6 +218,11 @@ export const getStudentServiceRequestData = async (email: string) => {
             element.requested_timestamp = getReadableStringFromTimestamp(
               element.requested_timestamp
             );
+            if (element.assigned_timestamp) {
+              element.assigned_timestamp = getReadableStringFromTimestamp(
+                element.assigned_timestamp
+              );
+            }
             return element;
           })
         );
