@@ -1,5 +1,6 @@
 import { pool } from "../configs/db";
 import { roomsByFloor } from "../configs/rooms";
+import { getReadableStringFromTimestamp } from "../utils/getReadableDateFromTimestamp";
 import { getRollFromEmail } from "../utils/getRollNumberFromEmail";
 
 export const getStudentData = async (email: string) => {
@@ -143,7 +144,9 @@ export const vacateStudent = async (email: string, time: string) => {
     pool.query(
       `select vacation_request(${pool.escape(
         getRollFromEmail(email)
-      )},${pool.escape(time)}) AS response;`,
+      )},${pool.escape(
+        new Date(time).toISOString().slice(0, 19).replace("T", " ")
+      )}) AS response;`,
       (err, result) => {
         if (err) {
           return reject(err);
@@ -210,7 +213,14 @@ export const getStudentServiceRequestData = async (email: string) => {
         if (err) {
           return reject(err);
         }
-        return resolve(result);
+        return resolve(
+          result.map((element) => {
+            element.requested_timestamp = getReadableStringFromTimestamp(
+              element.requested_timestamp
+            );
+            return element;
+          })
+        );
       }
     );
   });

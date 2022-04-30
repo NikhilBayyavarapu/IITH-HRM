@@ -6,10 +6,10 @@ create table student_details(
 	roll_no varchar(20)  NOT NULL primary key unique,
     room_no INT,
     block varchar(1),
-    contact_no INT,
+    contact_no BIGINT,
     address text,
     guardian_name varchar(30),
-    guardian_contact INT
+    guardian_contact BIGINT
 );
 
 create table fees(
@@ -21,7 +21,7 @@ create table fees(
 create table staff_details(
 	name varchar(50) NOT NULL,
 	id bigint  NOT NULL primary key auto_increment,
-    contact_no int,
+    contact_no BIGINT,
     staff_type varchar(20)
 );
 
@@ -93,23 +93,23 @@ create table attendance(
 
 drop function if exists apply_for_room;
 delimiter //
-create function apply_for_room(roll_num varchar(20), room_num int,block varchar(1))
+create function apply_for_room(roll_num varchar(20), room_num int,block_ent varchar(1))
 returns int
 begin
 	DECLARE check_roll_no varchar(20);
     DECLARE if_exists bool;
 	DECLARE if_exists_2 bool;
-    select roll_no into check_roll_no from student_details where room_no = room_num limit 1;
+    select roll_no into check_roll_no from student_details where room_no = room_num AND block = block_ent limit 1;
     select exists ( select roll_num from empty_room_allocataion_requests where roll_no = roll_num) into if_exists;
     select exists ( select roll_num from room_swap_requests where roll_no = roll_num)into if_exists_2;
     if(if_exists is true OR if_exists_2 is true) then
 		return 0;
 	end if;
     if(check_roll_no is NULL) then
-		insert into empty_room_allocataion_requests(roll_no,requested_block,requested_room) values(roll_num,block,room_num);
+		insert into empty_room_allocataion_requests(roll_no,requested_block,requested_room) values(roll_num,block_ent,room_num);
         return 1;
 	else
-		insert into room_swap_requests(roll_no,requested_block,requested_room) values(roll_num,block,room_num);
+		insert into room_swap_requests(roll_no,requested_block,requested_room) values(roll_num,block_ent,room_num);
         return 1;
 	end if;
 end//

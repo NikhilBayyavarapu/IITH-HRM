@@ -1,5 +1,7 @@
 import { pool } from "../configs/db";
 import { getReadableStringFromTimestamp } from "../utils/getReadableDateFromTimestamp";
+import xlsx from "xlsx";
+const { readFile, utils } = xlsx;
 
 export const getRoomSwapRequests = async () => {
   return new Promise((resolve, reject) => {
@@ -262,4 +264,81 @@ export const sendStudentData = async () => {
       return resolve(result);
     });
   });
+};
+
+export const uploadStudentDataFromExcel = async (filename: string) => {
+  const wb = readFile(`uploads/student/${filename}`);
+  const wsnames = wb.SheetNames;
+  const ws = wb.Sheets[wsnames[0]];
+  return Promise.all(
+    utils.sheet_to_json(ws).map((row) => {
+      return new Promise((resolve, reject) => {
+        pool.query(
+          `INSERT INTO student_details (name,roll_no,room_no,block,contact_no,address,guardian_name,guardian_contact) VALUES (${pool.escape(
+            row.name
+          )},${pool.escape(row.roll_no)},${pool.escape(
+            row.room_no
+          )},${pool.escape(row.block)},${pool.escape(
+            row.contact_no
+          )},${pool.escape(row.address)},${pool.escape(
+            row.guardian_name
+          )},${pool.escape(row.guardian_contact)}) ;`,
+          (err) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(1);
+          }
+        );
+      });
+    })
+  );
+};
+
+export const uploadAttendanceDataFromExcel = async (filename: string) => {
+  const wb = readFile(`uploads/student/${filename}`);
+  const wsnames = wb.SheetNames;
+  const ws = wb.Sheets[wsnames[0]];
+  return Promise.all(
+    utils.sheet_to_json(ws).map((row) => {
+      return new Promise((resolve, reject) => {
+        pool.query(
+          `INSERT INTO attendance (roll_no,entry,in_out_time) VALUES (${pool.escape(
+            row.roll_no
+          )},${pool.escape(row.entry)},${pool.escape(
+            row.in_out_time.substring(1, row.in_out_time.length - 1)
+          )}) ;`,
+          (err) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(1);
+          }
+        );
+      });
+    })
+  );
+};
+
+export const uploadStaffDataFromExcel = async (filename: string) => {
+  const wb = readFile(`uploads/student/${filename}`);
+  const wsnames = wb.SheetNames;
+  const ws = wb.Sheets[wsnames[0]];
+  return Promise.all(
+    utils.sheet_to_json(ws).map((row) => {
+      return new Promise((resolve, reject) => {
+        pool.query(
+          `INSERT INTO staff_details (name,contact_no,staff_type) VALUES (${pool.escape(
+            row.name
+          )},${pool.escape(row.contact_no)},${pool.escape(row.staff_type)}) ;`,
+          (err) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(1);
+          }
+        );
+      });
+    })
+  );
 };

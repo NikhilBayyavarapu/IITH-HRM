@@ -15,9 +15,39 @@ import {
   issueInventory,
   returnInventoryItem,
   sendStudentData,
+  uploadStudentDataFromExcel,
+  uploadAttendanceDataFromExcel,
+  uploadStaffDataFromExcel,
 } from "../controllers/hostel";
 import sendError from "../utils/error-handle";
 import sendData from "../utils/send-data";
+import path from "path";
+import multer from "multer";
+
+const storage = multer.diskStorage({
+  destination: "./uploads/student",
+  filename: function (_req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 },
+  fileFilter: function (_req, file, cb) {
+    checkFileType(file, cb);
+  },
+}).single("file");
+
+function checkFileType(file, cb) {
+  const filetypes = /xlsx/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  if (extname) {
+    return cb(null, true);
+  } else {
+    cb("Please upload excel only");
+  }
+}
 
 const router = Router();
 
@@ -171,6 +201,66 @@ router.get("/student", async (_req, res) => {
   } catch (error) {
     return sendError(res, 500, error);
   }
+});
+
+router.post("/studentexcel", async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return sendError(res, 500, err);
+    }
+    if (req.file === undefined) {
+      return sendError(res, 400, "No file sent");
+    }
+    try {
+      return sendData(
+        res,
+        200,
+        await uploadStudentDataFromExcel(req.file.filename)
+      );
+    } catch (error) {
+      return sendError(res, 500, error);
+    }
+  });
+});
+
+router.post("/attendanceexcel", async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return sendError(res, 500, err);
+    }
+    if (req.file === undefined) {
+      return sendError(res, 400, "No file sent");
+    }
+    try {
+      return sendData(
+        res,
+        200,
+        await uploadAttendanceDataFromExcel(req.file.filename)
+      );
+    } catch (error) {
+      return sendError(res, 500, error);
+    }
+  });
+});
+
+router.post("/staffexcel", async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return sendError(res, 500, err);
+    }
+    if (req.file === undefined) {
+      return sendError(res, 400, "No file sent");
+    }
+    try {
+      return sendData(
+        res,
+        200,
+        await uploadStaffDataFromExcel(req.file.filename)
+      );
+    } catch (error) {
+      return sendError(res, 500, error);
+    }
+  });
 });
 
 export default router;
